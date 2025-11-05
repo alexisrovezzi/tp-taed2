@@ -125,6 +125,7 @@ public class SistemaAerolineas {
         List<Vuelo> vuelosItinerario = new ArrayList<>();
         double precioFinal = 0;
         List<String> recargosAplicados = new ArrayList<>();
+        List<Double> preciosBasePorTramo = new ArrayList<>();
 
         for (Conexion conexion : ruta.getConexiones()) {
             // Buscar si ya existe un vuelo para esta conexión
@@ -137,7 +138,9 @@ public class SistemaAerolineas {
             }
 
             // Calcular precio del tramo
-            double precioTramo = conexion.getPrecioBase();
+            double precioBaseTramo = conexion.getPrecioBase();
+            preciosBasePorTramo.add(precioBaseTramo);
+            double precioTramo = precioBaseTramo;
 
             // Aplicar +10% si vuelo casi lleno
             if (vuelo.estaCasiLleno()) {
@@ -183,12 +186,20 @@ public class SistemaAerolineas {
         }
 
         // Imprimir comprobante
-        imprimirComprobante(ruta, reservasRealizadas, precioFinal, recargosAplicados);
+        imprimirComprobante(ruta, reservasRealizadas, precioFinal, recargosAplicados, preciosBasePorTramo);
     }
 
     private String generarCodigoVuelo(Conexion conexion) {
         return conexion.getOrigen().getCodigo() + conexion.getDestino().getCodigo() +
                String.format("%02d", contadorVuelos++);
+    }
+
+    /**
+     * Obtiene el código de un vuelo existente sin generar uno nuevo
+     */
+    private String obtenerCodigoVueloExistente(Conexion conexion) {
+        Vuelo vuelo = buscarVueloPorConexion(conexion);
+        return vuelo != null ? vuelo.getCodigoVuelo() : "N/A";
     }
 
     private String extraerCodigoVuelo(String codigoReserva) {
@@ -214,7 +225,7 @@ public class SistemaAerolineas {
         return null;
     }
 
-    private void imprimirComprobante(Grafo.ResultadoRuta ruta, List<Reserva> reservas, double precioFinal, List<String> recargosAplicados) {
+    private void imprimirComprobante(Grafo.ResultadoRuta ruta, List<Reserva> reservas, double precioFinal, List<String> recargosAplicados, List<Double> preciosBasePorTramo) {
         System.out.println("\n=== COMPROBANTE DE RESERVA ===");
         System.out.println("Ruta: " + ruta.getConexiones().get(0).getOrigen() +
                           " -> " + ruta.getConexiones().get(ruta.getConexiones().size()-1).getDestino());
@@ -224,10 +235,13 @@ public class SistemaAerolineas {
         for (int i = 0; i < reservas.size(); i++) {
             Reserva reserva = reservas.get(i);
             Conexion conexion = ruta.getConexiones().get(i);
-            String codigoVuelo = generarCodigoVuelo(conexion);
+            String codigoVuelo = obtenerCodigoVueloExistente(conexion);
+            double precioBase = preciosBasePorTramo.get(i);
+
             System.out.println("  " + reserva.getCodigoReserva() + ": Vuelo " + codigoVuelo +
                              " (" + conexion.getOrigen().getCodigo() + "-" + conexion.getDestino().getCodigo() + ")" +
                              " - Asiento " + reserva.getAsiento());
+            System.out.println("    Precio base: $" + String.format("%.0f", precioBase));
         }
 
         // Mostrar recargos aplicados

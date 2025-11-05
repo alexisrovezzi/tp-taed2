@@ -106,56 +106,91 @@ public class Grafo {
     }
 
     /**
-     * Dijkstra para encontrar ruta mínima por tiempo (criterio principal)
-     * En caso de empate, minimiza precio total
+     * ALGORITMO DE DIJKSTRA - Ruta mínima en red de aerolíneas
+     *
+     * En este sistema de aerolíneas, Dijkstra encuentra la ruta óptima considerando:
+     * - CRITERIO PRINCIPAL: Tiempo total mínimo (prioridad máxima)
+     * - CRITERIO SECUNDARIO: Precio total mínimo (solo en caso de empate de tiempo)
+     *
+     * EJEMPLO: De Buenos Aires (BUE) a Santa Cruz (SCZ)
+     * Ruta óptima: BUE → BRC → SCZ (4.2h) vs BUE → MDZ → SCZ (4.3h)
+     * Dijkstra elige la primera porque es 0.1h más rápida
+     *
+     * @param origen Aeropuerto de salida
+     * @param destino Aeropuerto de llegada
+     * @return ResultadoRuta con la ruta óptima encontrada
      */
     public ResultadoRuta dijkstra(Aeropuerto origen, Aeropuerto destino) {
+        // MAPAS PARA ALMACENAR COSTOS MÍNIMOS
+        // tiempoMinimo: costo de tiempo acumulado para llegar a cada aeropuerto
+        // precioMinimo: costo de precio acumulado para llegar a cada aeropuerto
         Map<Aeropuerto, Double> tiempoMinimo = new HashMap<>();
         Map<Aeropuerto, Double> precioMinimo = new HashMap<>();
+
+        // MAPAS PARA RECONSTRUIR LA RUTA
+        // predecesor: aeropuerto anterior en la ruta óptima
+        // conexionPredecesor: conexión usada para llegar al aeropuerto
         Map<Aeropuerto, Aeropuerto> predecesor = new HashMap<>();
         Map<Aeropuerto, Conexion> conexionPredecesor = new HashMap<>();
 
-        // Inicializar
+        // INICIALIZACIÓN: Todos los aeropuertos empiezan con costo infinito
+        // excepto el origen que tiene costo 0
         for (Aeropuerto aeropuerto : getAeropuertos()) {
             tiempoMinimo.put(aeropuerto, Double.MAX_VALUE);
             precioMinimo.put(aeropuerto, Double.MAX_VALUE);
         }
-        tiempoMinimo.put(origen, 0.0);
-        precioMinimo.put(origen, 0.0);
+        tiempoMinimo.put(origen, 0.0);  // Tiempo desde origen a origen = 0
+        precioMinimo.put(origen, 0.0);  // Precio desde origen a origen = 0
 
-        // Priority queue: tiempo principal, precio secundario
+        // COLA DE PRIORIDAD: Ordena por TIEMPO PRIMERO, luego PRECIO
+        // Ejemplo: Si dos aeropuertos tienen mismo tiempo, el más barato va primero
         PriorityQueue<Aeropuerto> pq = new PriorityQueue<>(
-            Comparator.<Aeropuerto>comparingDouble(tiempoMinimo::get)
-                .thenComparingDouble(precioMinimo::get)
+            Comparator.<Aeropuerto>comparingDouble(tiempoMinimo::get)  // Primero por tiempo
+                .thenComparingDouble(precioMinimo::get)               // Luego por precio
         );
-        pq.add(origen);
+        pq.add(origen);  // Comenzamos exploración desde el aeropuerto origen
 
+        // BUCLE PRINCIPAL: Exploración de aeropuertos por orden de prioridad
         while (!pq.isEmpty()) {
+            // EXTRAER aeropuerto con MENOR costo de tiempo (y precio si hay empate)
             Aeropuerto actual = pq.poll();
 
+            // OPTIMIZACIÓN: Si ya llegamos al destino, podemos terminar
             if (actual.equals(destino)) break;
 
+            // EXPLORAR TODAS LAS CONEXIONES desde el aeropuerto actual
             for (Conexion conexion : getConexiones(actual)) {
                 Aeropuerto vecino = conexion.getDestino();
+
+                // CALCULAR COSTOS ACUMULADOS para llegar al vecino a través de esta conexión
                 double nuevoTiempo = tiempoMinimo.get(actual) + conexion.getTiempoHoras();
                 double nuevoPrecio = precioMinimo.get(actual) + conexion.getPrecioBase();
 
-                // Comparar primero por tiempo, luego por precio
+                // DECISIÓN: ¿Es esta una mejor ruta hacia el vecino?
                 boolean mejorRuta = false;
+
+                // CRITERIO 1: ¿Es más rápida que la mejor ruta conocida?
                 if (nuevoTiempo < tiempoMinimo.get(vecino)) {
                     mejorRuta = true;
-                } else if (nuevoTiempo == tiempoMinimo.get(vecino) &&
+                }
+                // CRITERIO 2: ¿Mismo tiempo pero más barato? (empate de tiempo)
+                else if (nuevoTiempo == tiempoMinimo.get(vecino) &&
                           nuevoPrecio < precioMinimo.get(vecino)) {
                     mejorRuta = true;
                 }
 
+                // SI ENCONTRAMOS UNA MEJOR RUTA: Actualizar costos y predecesores
                 if (mejorRuta) {
+                    // ACTUALIZAR COSTOS MÍNIMOS conocidos
                     tiempoMinimo.put(vecino, nuevoTiempo);
                     precioMinimo.put(vecino, nuevoPrecio);
+
+                    // REGISTRAR cómo llegamos aquí (para reconstruir la ruta)
                     predecesor.put(vecino, actual);
                     conexionPredecesor.put(vecino, conexion);
 
-                    // Actualizar priority queue
+                    // ACTUALIZAR PRIORITY QUEUE
+                    // Remover y re-insertar para mantener orden correcto
                     pq.remove(vecino);
                     pq.add(vecino);
                 }
@@ -167,6 +202,18 @@ public class Grafo {
                               tiempoMinimo.get(destino), precioMinimo.get(destino));
     }
 
+    /**
+     * RECONSTRUCCIÓN DE LA RUTA ÓPTIMA
+     *
+     * Una vez que Dijkstra encuentra los costos mínimos, este método
+     * reconstruye la ruta específica desde el destino hacia el origen
+     * usando los mapas de predecesores.
+     *
+     * EJEMPLO: Si la ruta óptima fue BUE → COR → MDZ
+     * Los predecesores serían: MDZ->COR, COR->BUE
+     * Se reconstruye desde MDZ hacia atrás: MDZ, COR, BUE
+     * Luego se invierte para obtener: BUE, COR, MDZ
+     */
     private ResultadoRuta reconstruirRuta(Aeropuerto origen, Aeropuerto destino,
                                          Map<Aeropuerto, Aeropuerto> predecesor,
                                          Map<Aeropuerto, Conexion> conexionPredecesor,
@@ -174,11 +221,18 @@ public class Grafo {
         List<Conexion> ruta = new ArrayList<>();
         Aeropuerto actual = destino;
 
+        // RECORRER HACIA ATRÁS desde el destino hasta el origen
+        // usando el mapa de predecesores
         while (!actual.equals(origen)) {
             Aeropuerto prev = predecesor.get(actual);
+
+            // ERROR: No hay ruta posible (aeropuerto no alcanzable)
             if (prev == null) {
                 return new ResultadoRuta(null, Double.MAX_VALUE, Double.MAX_VALUE);
             }
+
+            // AGREGAR LA CONEXIÓN USADA al INICIO de la lista
+            // (porque vamos hacia atrás, luego invertiremos)
             ruta.add(0, conexionPredecesor.get(actual));
             actual = prev;
         }

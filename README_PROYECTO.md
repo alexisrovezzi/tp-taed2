@@ -79,6 +79,69 @@ src/main/java/com/aerolineas/
 - Mendoza <-> Santa Cruz: $170,000, 2.6h
 - Santa Fe <-> Posadas: $80,000, 1.2h
 
+## Algoritmo de Dijkstra - Ruta Óptima
+
+### Cómo funciona Dijkstra en este sistema
+
+El algoritmo de **Dijkstra** encuentra la ruta óptima entre aeropuertos considerando una **jerarquía de criterios**:
+
+#### 🎯 **Criterio Principal: TIEMPO MÍNIMO**
+- **Prioridad máxima**: Minimizar horas totales del viaje
+- **Ejemplo**: BUE→BRC→SCZ (4.2h) vs BUE→MDZ→SCZ (4.3h) → Elige la primera
+
+#### 💰 **Criterio Secundario: PRECIO MÍNIMO**
+- **Solo en empate de tiempo**: Si dos rutas duran igual, elige la más barata
+- **Ejemplo**: Dos rutas de 3.0h → Elige la de menor precio total
+
+### Implementación Técnica
+
+#### **Estructuras de Datos**
+- **`tiempoMinimo`**: Mapa con costo de tiempo acumulado a cada aeropuerto
+- **`precioMinimo`**: Mapa con costo de precio acumulado a cada aeropuerto
+- **`predecesor`**: Mapa para reconstruir la ruta (aeropuerto anterior)
+- **`conexionPredecesor`**: Mapa con la conexión específica usada
+
+#### **Cola de Prioridad (PriorityQueue)**
+```java
+PriorityQueue<Aeropuerto> pq = new PriorityQueue<>(
+    Comparator.comparingDouble(tiempoMinimo::get)  // Primero tiempo
+        .thenComparingDouble(precioMinimo::get)   // Luego precio
+);
+```
+
+#### **Lógica de Decisión**
+```java
+// ¿Es más rápida?
+if (nuevoTiempo < tiempoMinimo.get(vecino)) {
+    mejorRuta = true;
+}
+// ¿Mismo tiempo pero más barato?
+else if (nuevoTiempo == tiempoMinimo.get(vecino) &&
+          nuevoPrecio < precioMinimo.get(vecino)) {
+    mejorRuta = true;
+}
+```
+
+#### **Reconstrucción de Ruta**
+- **Desde el destino**: Retrocede usando `predecesor`
+- **Lista de conexiones**: Se construye en orden inverso y se invierte
+- **Resultado**: Lista ordenada de conexiones desde origen a destino
+
+### Ejemplo Práctico: BUE → SCZ
+
+**Rutas posibles:**
+1. BUE → BRC → SCZ: 2.2h + 2.0h = **4.2h** total
+2. BUE → MDZ → SCZ: 1.7h + 2.6h = **4.3h** total
+
+**Dijkstra elige**: Ruta 1 (más rápida por 0.1h)
+
+**Proceso paso a paso:**
+1. Inicializa: BUE=0h, otros=∞
+2. Explora BUE: encuentra BRC(2.2h) y MDZ(1.7h)
+3. Explora MDZ(1.7h): encuentra SCZ vía MDZ(1.7+2.6=4.3h)
+4. Explora BRC(2.2h): encuentra SCZ vía BRC(2.2+2.0=4.2h) ← ¡Mejor!
+5. Ruta final: BUE → BRC → SCZ (4.2h)
+
 ## Menú de Opciones
 
 El sistema ofrece las siguientes opciones en el menú principal:
@@ -108,10 +171,11 @@ cd src/main/java
 java com.aerolineas.Main
 ```
 
-### Script Windows
+### Script Windows (Recomendado)
 ```bash
 run.bat
 ```
+**Nota:** El script `run.bat` compila automáticamente todos los archivos Java antes de ejecutar el programa. Si hay errores de compilación, te informará y no ejecutará hasta que los corrijas.
 
 ## Ejemplos de Uso
 
@@ -135,9 +199,20 @@ Ruta: Buenos Aires -> Córdoba
 Tiempo total: 1.2 horas
 Vuelos asignados:
   RES0001-1: Vuelo BUECOR01 (BUE-COR) - Asiento A4
+    Precio base: $120000
+
+Recargos aplicados:
+  - +20% por vuelo directo (sin trasbordos)
+
 Precio final: $144000
 ```
 Asigna asiento automáticamente, calcula precio con recargos si aplican.
+
+**Cálculo de precios:**
+- **Precio base**: Costo individual de cada tramo según tabla
+- **+10% por tramo**: Si ocupación del vuelo ≥95% (por tramo)
+- **+20% total**: Si el itinerario es directo (único tramo)
+- **Precio final**: Suma de precios con recargos aplicados
 
 ### Lista de Todas las Reservas
 ```
