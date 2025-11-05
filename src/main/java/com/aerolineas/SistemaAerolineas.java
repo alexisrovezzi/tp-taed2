@@ -34,20 +34,23 @@ public class SistemaAerolineas {
         crearAeropuerto("SFN", "Santa Fe");
         crearAeropuerto("PSS", "Posadas");
 
-        // Vuelos directos desde Buenos Aires
-        agregarConexion("BUE", "COR", 120000, 1.2);
-        agregarConexion("BUE", "MDZ", 150000, 1.7);
-        agregarConexion("BUE", "BRC", 220000, 2.2);
-        agregarConexion("BUE", "SFN", 100000, 1.0);
-        agregarConexion("BUE", "PSS", 140000, 1.5);
+        // Vuelos directos desde Buenos Aires (unidireccionales según interpretación)
+        agregarConexionUnidireccional("BUE", "COR", 120000, 1.2);
+        agregarConexionUnidireccional("BUE", "MDZ", 150000, 1.7);
+        agregarConexionUnidireccional("BUE", "BRC", 220000, 2.2);
+        agregarConexionUnidireccional("BUE", "SFN", 100000, 1.0);
+        agregarConexionUnidireccional("BUE", "PSS", 140000, 1.5);
 
-        // Conexiones adicionales
+        // Conexiones adicionales (todas bidireccionales según consigna)
         agregarConexion("COR", "MDZ", 90000, 1.1);
         agregarConexion("COR", "SFN", 70000, 0.8);
         agregarConexion("MDZ", "BRC", 120000, 1.6);
         agregarConexion("BRC", "SCZ", 160000, 2.0);
         agregarConexion("MDZ", "SCZ", 170000, 2.6);
         agregarConexion("SFN", "PSS", 80000, 1.2);
+
+        // Ejemplo de vuelo unidireccional (si se quisiera agregar)
+        // agregarConexionUnidireccional("COR", "BUE", 120000, 1.2);
     }
 
     private void crearAeropuerto(String codigo, String nombre) {
@@ -61,6 +64,13 @@ public class SistemaAerolineas {
         Aeropuerto aeroDestino = aeropuertos.get(destino);
         Conexion conexion = new Conexion(aeroOrigen, aeroDestino, precio, tiempo);
         grafo.agregarConexion(conexion);
+    }
+
+    private void agregarConexionUnidireccional(String origen, String destino, double precio, double tiempo) {
+        Aeropuerto aeroOrigen = aeropuertos.get(origen);
+        Aeropuerto aeroDestino = aeropuertos.get(destino);
+        Conexion conexion = new Conexion(aeroOrigen, aeroDestino, precio, tiempo);
+        grafo.agregarConexion(conexion, false); // false = unidireccional
     }
 
     /**
@@ -114,6 +124,7 @@ public class SistemaAerolineas {
         // Crear vuelos por cada tramo si no existen
         List<Vuelo> vuelosItinerario = new ArrayList<>();
         double precioFinal = 0;
+        List<String> recargosAplicados = new ArrayList<>();
 
         for (Conexion conexion : ruta.getConexiones()) {
             // Buscar si ya existe un vuelo para esta conexión
@@ -131,6 +142,9 @@ public class SistemaAerolineas {
             // Aplicar +10% si vuelo casi lleno
             if (vuelo.estaCasiLleno()) {
                 precioTramo *= 1.10;
+                String motivoRecargo = "+10% por tramo " + conexion.getOrigen().getCodigo() + "-" +
+                    conexion.getDestino().getCodigo() + " (ocupación ≥95%)";
+                recargosAplicados.add(motivoRecargo);
                 System.out.println("Recargo +10% aplicado al tramo " +
                     conexion.getOrigen().getCodigo() + "-" + conexion.getDestino().getCodigo() +
                     " (ocupación ≥95%)");
@@ -143,6 +157,7 @@ public class SistemaAerolineas {
         // Aplicar +20% si es directo
         if (ruta.esDirecto()) {
             precioFinal *= 1.20;
+            recargosAplicados.add("+20% por vuelo directo (sin trasbordos)");
             System.out.println("Recargo +20% aplicado (vuelo directo)");
         }
 
@@ -168,7 +183,7 @@ public class SistemaAerolineas {
         }
 
         // Imprimir comprobante
-        imprimirComprobante(ruta, reservasRealizadas, precioFinal);
+        imprimirComprobante(ruta, reservasRealizadas, precioFinal, recargosAplicados);
     }
 
     private String generarCodigoVuelo(Conexion conexion) {
@@ -199,7 +214,7 @@ public class SistemaAerolineas {
         return null;
     }
 
-    private void imprimirComprobante(Grafo.ResultadoRuta ruta, List<Reserva> reservas, double precioFinal) {
+    private void imprimirComprobante(Grafo.ResultadoRuta ruta, List<Reserva> reservas, double precioFinal, List<String> recargosAplicados) {
         System.out.println("\n=== COMPROBANTE DE RESERVA ===");
         System.out.println("Ruta: " + ruta.getConexiones().get(0).getOrigen() +
                           " -> " + ruta.getConexiones().get(ruta.getConexiones().size()-1).getDestino());
@@ -213,6 +228,16 @@ public class SistemaAerolineas {
             System.out.println("  " + reserva.getCodigoReserva() + ": Vuelo " + codigoVuelo +
                              " (" + conexion.getOrigen().getCodigo() + "-" + conexion.getDestino().getCodigo() + ")" +
                              " - Asiento " + reserva.getAsiento());
+        }
+
+        // Mostrar recargos aplicados
+        if (!recargosAplicados.isEmpty()) {
+            System.out.println("\nRecargos aplicados:");
+            for (String recargo : recargosAplicados) {
+                System.out.println("  - " + recargo);
+            }
+        } else {
+            System.out.println("\nSin recargos adicionales");
         }
 
         System.out.println("\nPrecio final: $" + String.format("%.0f", precioFinal));

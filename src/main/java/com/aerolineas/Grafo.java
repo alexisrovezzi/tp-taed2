@@ -20,14 +20,26 @@ public class Grafo {
     }
 
     /**
-     * Agrega una conexión bidireccional entre dos aeropuertos
+     * Agrega una conexión entre dos aeropuertos
+     * @param conexion La conexión a agregar
+     * @param bidireccional Si es true, agrega también la conexión inversa
      */
-    public void agregarConexion(Conexion conexion) {
+    public void agregarConexion(Conexion conexion, boolean bidireccional) {
         agregarAeropuerto(conexion.getOrigen());
         agregarAeropuerto(conexion.getDestino());
 
         adyacencias.get(conexion.getOrigen()).add(conexion);
-        adyacencias.get(conexion.getDestino()).add(conexion.getInversa());
+
+        if (bidireccional) {
+            adyacencias.get(conexion.getDestino()).add(conexion.getInversa());
+        }
+    }
+
+    /**
+     * Agrega una conexión bidireccional entre dos aeropuertos (método legacy)
+     */
+    public void agregarConexion(Conexion conexion) {
+        agregarConexion(conexion, true);
     }
 
     /**

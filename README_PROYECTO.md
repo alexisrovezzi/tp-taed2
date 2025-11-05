@@ -60,6 +60,7 @@ src/main/java/com/aerolineas/
 - **PSS**: Posadas
 
 ### Vuelos Directos desde Buenos Aires
+*(Unidireccionales - solo salida desde BUE)*
 | Destino | Precio Base | Tiempo |
 |---------|-------------|--------|
 | Córdoba | $120,000 | 1.2h |
@@ -67,6 +68,8 @@ src/main/java/com/aerolineas/
 | Bariloche | $220,000 | 2.2h |
 | Santa Fe | $100,000 | 1.0h |
 | Posadas | $140,000 | 1.5h |
+
+**Nota:** Los vuelos directos desde Buenos Aires son unidireccionales. Para viajar desde Córdoba/Mendoza/etc. hacia Buenos Aires, se deben usar las conexiones bidireccionales de la sección siguiente.
 
 ### Conexiones Adicionales
 - Córdoba <-> Mendoza: $90,000, 1.1h
