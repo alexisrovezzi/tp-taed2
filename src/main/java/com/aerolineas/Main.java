@@ -25,7 +25,8 @@ public class Main {
             System.out.println("7. Ejecutar DFS desde aeropuerto");
             System.out.println("8. Limpiar consola");
             System.out.println("9. Listar todas las reservas");
-            System.out.println("10. Salir");
+            System.out.println("10. Simular ocupación 95%");
+            System.out.println("11. Salir");
             System.out.print("Seleccione una opción: ");
 
             try {
@@ -60,6 +61,9 @@ public class Main {
                         listarTodasLasReservas();
                         break;
                     case 10:
+                        simularOcupacion95();
+                        break;
+                    case 11:
                         System.out.println("¡Hasta luego!");
                         return;
                     default:
@@ -177,5 +181,13 @@ public class Main {
     private static void listarTodasLasReservas() {
         System.out.println("\n=== TODAS LAS RESERVAS ===");
         sistema.listarTodasLasReservas();
+    }
+
+    private static void simularOcupacion95() {
+        System.out.println("\n=== SIMULAR OCUPACIÓN 95% ===");
+        System.out.print("Código de vuelo: ");
+        String codigoVuelo = scanner.nextLine().trim();
+
+        sistema.simularOcupacion95(codigoVuelo);
     }
 }

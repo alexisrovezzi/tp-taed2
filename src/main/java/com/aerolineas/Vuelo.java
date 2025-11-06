@@ -76,6 +76,11 @@ public class Vuelo {
         });
     }
 
+    public void mostrarArbolReservas() {
+        System.out.println("Estructura del árbol AVL de reservas del vuelo " + codigoVuelo + ":");
+        reservas.mostrarArbol();
+    }
+
     /**
      * Muestra información del vuelo y ocupación
      */

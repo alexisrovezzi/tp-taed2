@@ -269,8 +269,12 @@ public class SistemaAerolineas {
         }
 
         vuelo.mostrarInformacion();
-        System.out.println("Reservas:");
+
+        System.out.println("\nReservas ordenadas (inOrder):");
         vuelo.listarReservas();
+
+        System.out.println("\nEstructura del árbol AVL:");
+        vuelo.mostrarArbolReservas();
     }
 
     /**
@@ -339,6 +343,64 @@ public class SistemaAerolineas {
             System.out.print(aeropuerto.getCodigo() + " ");
         }
         System.out.println();
+    }
+
+    /**
+     * Simula reservas automáticas hasta llegar al 95% de ocupación
+     */
+    public void simularOcupacion95(String codigoVuelo) {
+        Vuelo vuelo = vuelos.get(codigoVuelo.toUpperCase());
+        if (vuelo == null) {
+            System.out.println("Error: Vuelo no encontrado");
+            return;
+        }
+
+        System.out.println("Simulando reservas automáticas para vuelo " + codigoVuelo);
+        System.out.println("Ocupación inicial: " + vuelo.getAeronave().getTotalOcupados() + "/30 asientos");
+
+        int reservasRealizadas = 0;
+        int totalAsientos = vuelo.getAeronave().getTotalAsientos();
+        int objetivoAsientos = (int) Math.ceil(totalAsientos * 0.95); // 95% de ocupación
+
+        // Nombres para simular reservas
+        String[] nombres = {
+            "Juan Pérez", "María García", "Carlos López", "Ana Martínez", "Luis Rodríguez",
+            "Laura Sánchez", "Diego González", "Carmen Díaz", "Miguel Ruiz", "Isabel Morales",
+            "Antonio Jiménez", "Pilar Muñoz", "José Luis Álvarez", "Rosa Romero", "Francisco Navarro",
+            "Cristina Rubio", "Ángel Serrano", "Mercedes Delgado", "Rafael Guerrero", "Lucía Medina",
+            "Manuel Vega", "Teresa Flores", "Jesús Castro", "Raquel Ortega", "Alberto Vargas",
+            "Elena Ramos", "Rubén Herrera", "Mónica Gil", "Pablo Torres", "Silvia Aguilar"
+        };
+
+        int nombreIndex = 0;
+
+        while (vuelo.getAeronave().getTotalOcupados() < objetivoAsientos) {
+            String nombre = nombres[nombreIndex % nombres.length] + "_" + (nombreIndex / nombres.length + 1);
+            nombreIndex++;
+
+            // Generar código de reserva único
+            String codigoReserva = "SIM" + String.format("%04d", contadorReservas++);
+
+            Reserva reserva = vuelo.realizarReserva(codigoReserva, nombre);
+            if (reserva == null) {
+                System.out.println("No se pudieron asignar más asientos");
+                break;
+            }
+
+            reservasRealizadas++;
+        }
+
+        double porcentajeFinal = vuelo.getAeronave().getPorcentajeOcupacion();
+        System.out.println("\nSimulación completada:");
+        System.out.println("Reservas realizadas: " + reservasRealizadas);
+        System.out.println("Ocupación final: " + vuelo.getAeronave().getTotalOcupados() + "/" + totalAsientos +
+                          " asientos (" + String.format("%.1f%%", porcentajeFinal) + ")");
+
+        if (porcentajeFinal >= 95.0) {
+            System.out.println("✅ El vuelo ahora tiene ≥95% ocupación - aplicará +10% en futuras reservas");
+        } else {
+            System.out.println("❌ No se alcanzó el 95% (falta " + (objetivoAsientos - vuelo.getAeronave().getTotalOcupados()) + " asientos)");
+        }
     }
 
     /**

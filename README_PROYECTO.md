@@ -148,14 +148,15 @@ El sistema ofrece las siguientes opciones en el menú principal:
 
 1. **Consultar ruta mínima entre aeropuertos** - Muestra la ruta óptima con Dijkstra
 2. **Realizar reserva de pasaje** - Crea reserva con asignación automática de asiento
-3. **Consultar ocupación de vuelo** - Muestra estado del vuelo y reservas
+3. **Consultar ocupación de vuelo** - Muestra estado del vuelo, reservas ordenadas y estructura del árbol AVL
 4. **Cancelar reserva** - Elimina una reserva existente
 5. **Listar aeropuertos alcanzables** - Muestra destinos accesibles desde un aeropuerto
 6. **Ejecutar BFS desde aeropuerto** - Recorrido BFS del grafo
 7. **Ejecutar DFS desde aeropuerto** - Recorrido DFS del grafo
 8. **Limpiar consola** - Limpia la pantalla para mejor visualización
 9. **Listar todas las reservas** - Muestra todas las reservas del sistema con estadísticas
-10. **Salir** - Termina el programa
+10. **Simular ocupación 95%** - Hace reservas automáticas para probar el recargo del +10%
+11. **Salir** - Termina el programa
 
 ## Compilación y Ejecución
 
@@ -214,6 +215,21 @@ Asigna asiento automáticamente, calcula precio con recargos si aplican.
 - **+20% total**: Si el itinerario es directo (único tramo)
 - **Precio final**: Suma de precios con recargos aplicados
 
+### Simular Ocupación 95%
+```
+=== SIMULAR OCUPACIÓN 95% ===
+Código de vuelo: BUECOR01
+
+Simulando reservas automáticas para vuelo BUECOR01
+Ocupación inicial: 0/30 asientos
+
+Simulación completada:
+Reservas realizadas: 28
+Ocupación final: 28/30 asientos (93.3%)
+❌ No se alcanzó el 95% (falta 1 asientos)
+```
+Esta función llena automáticamente un vuelo hasta el 95% de ocupación para probar el recargo del +10%. Útil para testing y demostraciones.
+
 ### Lista de Todas las Reservas
 ```
 === TODAS LAS RESERVAS ===
@@ -235,8 +251,27 @@ Muestra todas las reservas agrupadas por vuelo, con información de ocupación y
 ### Consulta de Ocupación
 ```
 Código de vuelo: BUECOR01
+
+Vuelo: BUECOR01
+Ruta: Buenos Aires -> Córdoba
+Aeronave - Ocupación: 33.3%
+Sección A: 3/10
+Sección B: 3/10
+Sección C: 4/10
+
+Reservas ordenadas (inOrder):
+Reservas del vuelo BUECOR01:
+Reserva RES0001-1 - Juan Pérez: Asiento A1
+Reserva RES0001-2 - María García: Asiento A2
+Reserva RES0001-3 - Carlos López: Asiento A3
+
+Estructura del árbol AVL:
+Estructura del árbol AVL de reservas del vuelo BUECOR01:
+└── RES0001-2 (Reserva RES0001-2 - María García: Asiento A2)
+    ├── RES0001-1 (Reserva RES0001-1 - Juan Pérez: Asiento A1)
+    └── RES0001-3 (Reserva RES0001-3 - Carlos López: Asiento A3)
 ```
-Muestra porcentaje global, ocupación por sección y lista de reservas.
+Muestra porcentaje global, ocupación por sección, lista ordenada de reservas (inOrder) y visualización gráfica de la estructura del árbol AVL.
 
 ## Algoritmos Implementados
 

@@ -236,6 +236,31 @@ public class ArbolAVL<T extends Comparable<T>, V> {
     }
 
     /**
+     * Muestra la estructura del árbol AVL de forma visual (ASCII Art)
+     */
+    public void mostrarArbol() {
+        if (raiz == null) {
+            System.out.println("(Árbol vacío)");
+            return;
+        }
+        mostrarArbolRecursivo(raiz, "", true);
+    }
+
+    private void mostrarArbolRecursivo(NodoAVL<T, V> nodo, String prefix, boolean esDerecho) {
+        if (nodo != null) {
+            System.out.println(prefix + (esDerecho ? "└── " : "├── ") + nodo.clave + " (" + nodo.valor + ")");
+
+            // Rama derecha
+            mostrarArbolRecursivo(nodo.derecho,
+                prefix + (esDerecho ? "    " : "│   "), false);
+
+            // Rama izquierda
+            mostrarArbolRecursivo(nodo.izquierdo,
+                prefix + (esDerecho ? "    " : "│   "), true);
+        }
+    }
+
+    /**
      * Interfaz para visitar nodos durante el recorrido
      */
     public interface Visitor<T, V> {
